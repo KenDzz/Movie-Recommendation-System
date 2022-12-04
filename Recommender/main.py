@@ -25,19 +25,14 @@
 # vote_count - the count of votes recieved.
 
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
-from ast import literal_eval
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
-from nltk.stem.snowball import SnowballStemmer
-from nltk.stem.wordnet import WordNetLemmatizer
-from nltk.corpus import wordnet
-#from surprise import Reader, Dataset, SVD, evaluate
-
 import warnings; warnings.simplefilter('ignore')
+
+#Define a TF-IDF Vectorizer Object. Remove all english stop words such as 'the', 'a'
+tfidf = TfidfVectorizer(stop_words='english')
+
+count = CountVectorizer(stop_words='english')
 
 def weighted_rating(x, m, C):
     v = x['vote_count']
@@ -46,42 +41,59 @@ def weighted_rating(x, m, C):
     return (v/(v+m) * R) + (m/(m+v) * C)
 
 
-def get_recommendations(title, df):
-    # Define a TF-IDF Vectorizer Object. Remove all english stop words such as 'the', 'a'
-    tfidf = TfidfVectorizer(stop_words='english')
-    # Replace NaN with an empty string
-    df['overview'] = df['overview'].fillna('')
+def content_based_recommender(title, dataframe):
     # Construct the required TF-IDF matrix by fitting and transforming the data
-    tfidf_matrix = tfidf.fit_transform(df['overview'])
+    tfidf_matrix = tfidf.fit_transform(dataframe['overview'])
     # Output the shape of tfidf_matrix
-    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-    indices = pd.Series(df.index, index=df['title']).drop_duplicates()
+    cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+    # title - index olusturma
+    indices = pd.Series(dataframe.index, index=dataframe['title'])
+    indices = indices[~indices.index.duplicated(keep='last')]
+    # Get the index of the movie that matches the title
+    movie_index = indices[title]
+    print(movie_index)
+
+    similarity_scores = pd.DataFrame(cosine_sim[movie_index], columns=['scoretfidf'])
+
+    movie_indices = similarity_scores.sort_values(by='scoretfidf', ascending=False)[1:13].index
+    return dataframe.iloc[movie_indices]
+
+
+def get_CreditsGenresKeywordsrecommendations(title, df):
+
+    count_matrix = count.fit_transform(df['soup'])
+    # Output the shape of tfidf_matrix
+    cosine_sim2 = cosine_similarity(count_matrix, count_matrix)
+
+    indices2 = pd.Series(df.index, index=df['title']).drop_duplicates()
 
     # Get the index of the movie that matches the title
-    idx = indices[title]
-    # Get the pairwsie similarity scores of all movies with that movie
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    # Sort the movies based on the similarity scores
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    # Get the scores of the 10 most similar movies
-    sim_scores = sim_scores[1:101]
-    # Get the movie indices
-    movie_indices = [i[0] for i in sim_scores]
-    # Return the top 10 most similar movies
-    return df.iloc[movie_indices]
+    idx2 = indices2[title]
+
+    sim_scores2 = pd.DataFrame(cosine_sim2[idx2], columns=['scoreCount'])
+    movie_indices2 = sim_scores2.sort_values(by='scoreCount', ascending=False)[1:13].index
+
+    # Return the top 100 most similar movies
+    return df.iloc[movie_indices2]
+
+
 
 
 def Movie_Recommendations(title,df):
-    Result = get_recommendations(title, df)
+    Result1 = content_based_recommender(title, df)
+    Result2 = get_CreditsGenresKeywordsrecommendations(title, df)
+    Result = Result1.append(Result2, ignore_index = True)
+
+
     # average
     C = Result['vote_average'].mean()
     # Luot binh chon cao hon 90% luot binh chon con lai
     M = Result['vote_count'].quantile(0.9)
     # Get Movie > M
-    q_movies = Result.copy().loc[Result['vote_count'] >= M]
-    q_movies['score'] = q_movies.apply(weighted_rating, axis=1, args=(C,M,))
+    #q_movies = Result.copy().loc[Result['vote_count'] >= M]
+    Result['score'] = Result.apply(weighted_rating, axis=1, args=(C,M,))
     # Sort movies based on score calculated above
-    q_movies = q_movies.sort_values('score', ascending=False)
+    q_movies = Result.sort_values('score', ascending=False)
     return q_movies
 
 #print(Movie_Recommendations('The Dark Knight Rises'))
