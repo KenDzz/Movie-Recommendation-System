@@ -1,13 +1,19 @@
 import json
+from typing import Union
+
 import requests
 import uvicorn
 import pandas as pd
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import RedirectResponse
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from Recommender.main import Movie_Recommendations
 from ast import literal_eval
 import numpy as np
+from bson.json_util import dumps, loads
+from pymongo import MongoClient
+from pydantic import BaseModel
+from datetime import datetime
 
 API_KEY_THE_MOVIE_DB = '83698018e32f927c74f1f51dcaacc231'
 language_API = 'vi'
@@ -19,8 +25,15 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 domain = ' http://127.0.0.1:8000/'
+urlMongoDB = "mongodb://127.0.0.1:27017"
+
+class ItemMovie(BaseModel):
+    cookie: Union[str, None] = None
+    movie_name: Union[str, None] = None
+
 
 md1 = pd.read_csv('Movie-Recommender-Data/credits.csv')
 md2 = pd.read_csv('Movie-Recommender-Data/movies_metadata.csv')
@@ -40,6 +53,17 @@ md3["id"] = md3["id"].astype(int)
 df1 = pd.merge(md1, md2, on="id")
 df= pd.merge(df1, md3, on="id")
 
+
+def get_database():
+
+    # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
+    client = MongoClient(urlMongoDB)
+
+    # Create the database for our example (we will use the same database throughout the tutorial
+    return client['movierecommender']
+
+dbname = get_database()
+collection_name = dbname["recommender"]
 
 def get_director(x):
     for i in x:
@@ -112,6 +136,42 @@ def read_item(page: str):
         resultJs.update(infoJs)
     return resultJs
 
+@app.get("/getmovieCookie/{cookie}")
+def read_item(cookie: str):
+    listMovie = []
+    listMovieRs = pd.DataFrame()
+    listMovieRs1 = pd.DataFrame()
+    listMovieRs2 = pd.DataFrame()
+    listMovieRs3 = pd.DataFrame()
+    resultJs = {}
+    filter = {
+        'cookie': cookie
+    }
+    sort = list({'last_modified': -1}.items())
+    limit = 3
+
+    result = collection_name.find(
+        filter=filter,
+        sort=sort,
+        limit=limit
+    )
+    for x in result:
+        listMovie.append(x["movie_name"])
+    listMovie = list(dict.fromkeys(listMovie))
+
+    for name in listMovie:
+        print(name)
+        Result2   = Movie_Recommendations(name,df)
+        listMovieRs = listMovieRs.append(Result2, ignore_index=True)
+
+    for index, row in listMovieRs.iterrows():
+        info = getInfomationMovie(row['imdb_id'])
+        infoJs = {row['imdb_id']: info}
+        resultJs.update(infoJs)
+
+    return resultJs
+
+
 
 @app.get("/recommender/{movie}")
 def read_item(movie: str):
@@ -128,6 +188,16 @@ def read_item(movie: str):
 @app.get("/tmdb/{id}")
 def read_item(id: str):
     return getInfomationMovie(id)
+
+@app.post("/movieclick" , response_model=ItemMovie)
+async def create_item(item: ItemMovie):
+    item = {
+        "cookie": item.cookie,
+        "movie_name": item.movie_name,
+        "last_modified": datetime.now()
+    }
+    collection_name.insert_one(item)
+    return item
 
 def getInfomationMovie(idtmdb):
     URL = "https://api.themoviedb.org/3/movie/"+idtmdb
