@@ -110,3 +110,7 @@ body {
 iframe[sandbox] .read-article{
   display: none;
 }
+
+.self-user{
+  display: none;
+}

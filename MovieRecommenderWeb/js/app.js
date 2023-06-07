@@ -1,4 +1,5 @@
 function getMovieHome(pageFirst) {
+	var urlPath = window.location.pathname.split('/');
 	var pageInt = parseInt(pageFirst);
 	var page = pageInt+'-'+(pageInt+30);
 	$.ajax({
@@ -6,16 +7,20 @@ function getMovieHome(pageFirst) {
 		type: 'GET',
 		dataType: 'json',
 		beforeSend: function() {
-	        Notiflix.Loading.dots();  
-	    },complete: function() {
+			Notiflix.Loading.dots();
+		},complete: function() {
 			Notiflix.Loading.remove();
-    	}
+			if(urlPath[urlPath.length - 1] === "ncf.html"){
+				checkCookieNCF();
+			}
+		}
 	})
 	.done(function(data) { 
 		getMovieHomeCookie();
 		var urlImg = 'http://image.tmdb.org/t/p/w500';
-		console.log(data);
-		$(".movie").append('<h2 class="title-movie-recomender">Đề xuất cho bạn</h2>');
+		if(data){
+			$(".movie").append('<h2 class="title-movie-recomender">Ngẫu nhiên</h2>');
+		}
 		Object.keys(data).forEach(function(key) {
 			const genres = [];
 			const productionCountries = [];
@@ -49,9 +54,9 @@ function getMovieHome(pageFirst) {
 			if (data[key]['poster_path'] != null) {
 				urlPosterMovie = urlImg+data[key]['poster_path'];
 			}
-		  $(".movie").append('<div class="col-2 mt-2"><div class="card-movie card"><img src="'+urlPosterMovie+'" class="card-img-movie" alt="..."><div class="card-img-overlay"><h5 class="card-title">'+data[key]['original_title']+'</h5><p class="card-text">Thể loại:'+genres.toString()+'</p><p class="card-text">Nước sản xuất:'+productionCountries.toString()+'</p><div class="d-grid gap-2 mt-5"><a class="btn btn-outline-dark btn-movie-info" href="movie.html?name='+data[key]['original_title']+'&imdb='+data[key]['imdb_id']+'">Xem thông tin</a>'+urlTrailerContent+'</div></div></div></div>');
+			$(".movie").append('<div class="col-2 mt-2"><div class="card-movie card"><img src="'+urlPosterMovie+'" class="card-img-movie" alt="..."><div class="card-img-overlay"><h5 class="card-title">'+data[key]['original_title']+'</h5><p class="card-text">Thể loại:'+genres.toString()+'</p><p class="card-text">Nước sản xuất:'+productionCountries.toString()+'</p><div class="d-grid gap-2 mt-5"><a class="btn btn-outline-dark btn-movie-info" href="movie.html?name='+data[key]['original_title']+'&imdb='+data[key]['imdb_id']+'">Xem thông tin</a>'+urlTrailerContent+'</div></div></div></div>');
 		}); 
-   	}) 
+	}) 
 	.fail(function() {
 	}) 
 	.always(function() {
@@ -64,14 +69,16 @@ function getMovieHomeCookie() {
 		type: 'GET',
 		dataType: 'json',
 		beforeSend: function() {
-	        Notiflix.Loading.dots();  
-	    },complete: function() {
+			Notiflix.Loading.dots();  
+		},complete: function() {
 			Notiflix.Loading.remove();
-    	}
+		}
 	})
 	.done(function(data) { 
 		var urlImg = 'http://image.tmdb.org/t/p/w500';
-		$(".movie-recommender-cookie").append('<h2 class="title-movie-recomender">Đề xuất cho bạn</h2>');
+		if(data){
+			$(".movie-recommender-cookie").append('<h2 class="title-movie-recomender">Đề xuất cho bạn</h2>');
+		}
 		console.log(data);
 		Object.keys(data).forEach(function(key) {
 			const genres = [];
@@ -106,9 +113,129 @@ function getMovieHomeCookie() {
 			if (data[key]['poster_path'] != null) {
 				urlPosterMovie = urlImg+data[key]['poster_path'];
 			}
-		  $(".movie-recommender-cookie").append('<h2 class="title-movie-recomender">Đề xuất cho bạn</h2><div class="col-2 mt-2"><div class="card-movie card"><img src="'+urlPosterMovie+'" class="card-img-movie" alt="..."><div class="card-img-overlay"><h5 class="card-title">'+data[key]['original_title']+'</h5><p class="card-text">Thể loại:'+genres.toString()+'</p><p class="card-text">Nước sản xuất:'+productionCountries.toString()+'</p><div class="d-grid gap-2 mt-5"><a class="btn btn-outline-dark btn-movie-info" href="movie.html?name='+data[key]['original_title']+'&imdb='+data[key]['imdb_id']+'">Xem thông tin</a>'+urlTrailerContent+'</div></div></div></div>');
+			$(".movie-recommender-cookie").append('<div class="col-2 mt-2"><div class="card-movie card"><img src="'+urlPosterMovie+'" class="card-img-movie" alt="..."><div class="card-img-overlay"><h5 class="card-title">'+data[key]['original_title']+'</h5><p class="card-text">Thể loại:'+genres.toString()+'</p><p class="card-text">Nước sản xuất:'+productionCountries.toString()+'</p><div class="d-grid gap-2 mt-5"><a class="btn btn-outline-dark btn-movie-info" href="movie.html?name='+data[key]['original_title']+'&imdb='+data[key]['imdb_id']+'">Xem thông tin</a>'+urlTrailerContent+'</div></div></div></div>');
 		}); 
-   	}) 
+	}) 
+	.fail(function() {
+	}) 
+	.always(function() {
+	}); 
+}
+
+
+function getMovieHomeNCF() {
+	$.ajax({
+		url: 'http://127.0.0.1:8000/getmovieNCFUser/'+getCookie("ncfid"),
+		type: 'GET',
+		dataType: 'json',
+		beforeSend: function() {
+			Notiflix.Loading.dots();  
+		},complete: function() {
+			Notiflix.Loading.remove();
+		}
+	})
+	.done(function(data) { 
+		var urlImg = 'http://image.tmdb.org/t/p/w500';
+		if(data){
+			$(".movie-recommender-cookie").append('<h2 class="title-movie-recomender">Đề xuất cho bạn</h2>');
+		}
+		console.log(data);
+		Object.keys(data).forEach(function(key) {
+			const genres = [];
+			const productionCountries = [];
+			const genresObj = data[key]['genres'];
+			const productionCountriesObj = data[key]['production_countries'];
+			if(genresObj != null){
+				Object.keys(genresObj).forEach(function(key) {
+					genres.push(genresObj[key]['name']); 
+				});
+			}
+			if(productionCountriesObj != null){
+				Object.keys(productionCountriesObj).forEach(function(key) {
+					productionCountries.push(productionCountriesObj[key]['name']);
+				});
+			}
+			var urlTrailer = getUrlTrailer(data[key]['id']);
+			console.log(urlTrailer)
+			var urlTrailerContent = '';
+			if(urlTrailer != null){
+				const myArray = urlTrailer.split("|");
+				if(myArray[1] == 'YouTube'){
+					urlTrailerContent = '<a class="btn btn-outline-dark btn-movie-home" data-fancybox="video-gallery" href="https://www.youtube.com/watch?v='+myArray[0]+'">Trailer</a>';
+				}else{
+					urlTrailerContent = '<a class="btn btn-outline-dark btn-movie-home" data-fancybox="video-gallery" href="https://vimeo.com/'+myArray[0]+'">Trailer</a>';
+				}
+			}else{
+				urlTrailerContent =	'<a  class="btn btn-outline-dark btn-movie-home" data-fancybox="video-gallery" href="">Trailer</a>';
+			}
+
+			var urlPosterMovie = 'https://dummyimage.com/293x440/000/fff';
+			if (data[key]['poster_path'] != null) {
+				urlPosterMovie = urlImg+data[key]['poster_path'];
+			}
+			$(".movie-recommender-cookie").append('<div class="col-2 mt-2"><div class="card-movie card"><img src="'+urlPosterMovie+'" class="card-img-movie" alt="..."><div class="card-img-overlay"><h5 class="card-title">'+data[key]['original_title']+'</h5><p class="card-text">Thể loại:'+genres.toString()+'</p><p class="card-text">Nước sản xuất:'+productionCountries.toString()+'</p><div class="d-grid gap-2 mt-5"><a class="btn btn-outline-dark btn-movie-info" href="movie.html?name='+data[key]['original_title']+'&imdb='+data[key]['imdb_id']+'">Xem thông tin</a>'+urlTrailerContent+'</div></div></div></div>');
+		}); 
+	}) 
+	.fail(function() {
+	}) 
+	.always(function() {
+	}); 
+}
+
+
+function getMovieFarivote() {
+	$.ajax({
+		url: 'http://127.0.0.1:8000/getmoviefavouriteuser/'+getCookie("ncfid"),
+		type: 'GET',
+		dataType: 'json',
+		beforeSend: function() {
+			Notiflix.Loading.dots();  
+		},complete: function() {
+			Notiflix.Loading.remove();
+		}
+	})
+	.done(function(data) { 
+		var urlImg = 'http://image.tmdb.org/t/p/w500';
+		if(data){
+			$(".movie-recommender-cookie").append('<h2 class="title-movie-recomender">Danh sách yêu thích của bạn</h2>');
+		}
+		console.log(data);
+		Object.keys(data).forEach(function(key) {
+			const genres = [];
+			const productionCountries = [];
+			const genresObj = data[key]['genres'];
+			const productionCountriesObj = data[key]['production_countries'];
+			if(genresObj != null){
+				Object.keys(genresObj).forEach(function(key) {
+					genres.push(genresObj[key]['name']); 
+				});
+			}
+			if(productionCountriesObj != null){
+				Object.keys(productionCountriesObj).forEach(function(key) {
+					productionCountries.push(productionCountriesObj[key]['name']);
+				});
+			}
+			var urlTrailer = getUrlTrailer(data[key]['id']);
+			console.log(urlTrailer)
+			var urlTrailerContent = '';
+			if(urlTrailer != null){
+				const myArray = urlTrailer.split("|");
+				if(myArray[1] == 'YouTube'){
+					urlTrailerContent = '<a class="btn btn-outline-dark btn-movie-home" data-fancybox="video-gallery" href="https://www.youtube.com/watch?v='+myArray[0]+'">Trailer</a>';
+				}else{
+					urlTrailerContent = '<a class="btn btn-outline-dark btn-movie-home" data-fancybox="video-gallery" href="https://vimeo.com/'+myArray[0]+'">Trailer</a>';
+				}
+			}else{
+				urlTrailerContent =	'<a  class="btn btn-outline-dark btn-movie-home" data-fancybox="video-gallery" href="">Trailer</a>';
+			}
+
+			var urlPosterMovie = 'https://dummyimage.com/293x440/000/fff';
+			if (data[key]['poster_path'] != null) {
+				urlPosterMovie = urlImg+data[key]['poster_path'];
+			}
+			$(".movie-recommender-cookie").append('<div class="col-2 mt-2"><div class="card-movie card"><img src="'+urlPosterMovie+'" class="card-img-movie" alt="..."><div class="card-img-overlay"><h5 class="card-title">'+data[key]['original_title']+'</h5><p class="card-text">Thể loại:'+genres.toString()+'</p><p class="card-text">Nước sản xuất:'+productionCountries.toString()+'</p><div class="d-grid gap-2 mt-5"><a class="btn btn-outline-dark btn-movie-info" href="movie.html?name='+data[key]['original_title']+'&imdb='+data[key]['imdb_id']+'">Xem thông tin</a>'+urlTrailerContent+'</div></div></div></div>');
+		}); 
+	}) 
 	.fail(function() {
 	}) 
 	.always(function() {
@@ -122,13 +249,13 @@ function MovieRecommender(title) {
 		type: 'GET',
 		dataType: 'json',
 		beforeSend: function() {
-	        Notiflix.Block.pulse('.movie-recommender', {
+			Notiflix.Block.pulse('.movie-recommender', {
 				backgroundColor: 'transparent',
 			});
 
-	    },complete: function() {
+		},complete: function() {
 			Notiflix.Block.remove('.movie-recommender');
-    	}
+		}
 	})
 	.done(function(data) { 
 		var urlImg = 'http://image.tmdb.org/t/p/w500';
@@ -165,9 +292,9 @@ function MovieRecommender(title) {
 			if (data[key]['poster_path'] != null) {
 				urlPosterMovie = urlImg+data[key]['poster_path'];
 			}
-		  $(".movie-recommender").append('<div class="col-2 mt-2"><div class="card-movie card"><img src="'+urlPosterMovie+'" class="card-img-movie" alt="..."><div class="card-img-overlay"><h5 class="card-title">'+data[key]['original_title']+'</h5><p class="card-text">Thể loại:'+genres.toString()+'</p><p class="card-text">Nước sản xuất:'+productionCountries.toString()+'</p><div class="d-grid gap-2 mt-5"><a class="btn btn-outline-dark btn-movie-info" href="movie.html?name='+data[key]['original_title']+'&imdb='+data[key]['imdb_id']+'">Xem thông tin</a>'+urlTrailerContent+'</div></div></div></div>');
+			$(".movie-recommender").append('<div class="col-2 mt-2"><div class="card-movie card"><img src="'+urlPosterMovie+'" class="card-img-movie" alt="..."><div class="card-img-overlay"><h5 class="card-title">'+data[key]['original_title']+'</h5><p class="card-text">Thể loại:'+genres.toString()+'</p><p class="card-text">Nước sản xuất:'+productionCountries.toString()+'</p><div class="d-grid gap-2 mt-5"><a class="btn btn-outline-dark btn-movie-info" href="movie.html?name='+data[key]['original_title']+'&imdb='+data[key]['imdb_id']+'">Xem thông tin</a>'+urlTrailerContent+'</div></div></div></div>');
 		}); 
-   	}) 
+	}) 
 	.fail(function() {
 	}) 
 	.always(function() {
@@ -181,10 +308,10 @@ function MovieIMDB(id) {
 		type: 'GET',
 		dataType: 'json',
 		beforeSend: function() {
-	        Notiflix.Loading.dots();
-	    },complete: function() {
+			Notiflix.Loading.dots();
+		},complete: function() {
 			Notiflix.Loading.remove();
-    	}
+		}
 	})
 	.done(function(data) { 
 		var urlImg = 'http://image.tmdb.org/t/p/w500';
@@ -195,8 +322,8 @@ function MovieIMDB(id) {
 		const languages = [];
 		const languagesObj = data['spoken_languages'];
 		let USDollar = new Intl.NumberFormat('en-US', {
-		    style: 'currency',
-		    currency: 'USD',
+			style: 'currency',
+			currency: 'USD',
 		});
 		if(genresObj != null){
 			Object.keys(genresObj).forEach(function(key) {
@@ -221,7 +348,7 @@ function MovieIMDB(id) {
 		}
 		$(".movie-info").append('<div class="video-container"><iframe frameborder="0" src="'+urlTrailerContent+'"></iframe></div><div id="text-info"><h1>'+data['original_title']+'</h1><h4>Thể loại:'+genres.toString()+' </h4><div class="d-flex flex-row"><div class="p-2"><p>'+languages.toString()+' | '+data['runtime']+' Phút</p></div><div class="p-2"><p>Ngân sách: '+USDollar.format(data['budget'])+'| Doanh Thu: '+USDollar.format(data['revenue'])+'</p> </div></div><p class="w-50"> '+data['overview']+'</p>');
 
-   	}) 
+	}) 
 	.fail(function() {
 	}) 
 	.always(function() {
@@ -240,7 +367,7 @@ function getUrlTrailer (idMovie) {
 		if(data['results'].length > 0){
 			result = data['results'][0]['key']+'|'+data['results'][0]['site'];
 		}
-   	})
+	})
 	.fail(function() {
 	}) 
 	.always(function() {
@@ -258,51 +385,51 @@ function getMovieInfo (url) {
 }
 
 function getQueryParams(url) {
-    const paramArr = url.slice(url.indexOf('?') + 1).split('&');
-    const params = {};
-    paramArr.map(param => {
-        const [key, val] = param.split('=');
-        params[key] = decodeURIComponent(val);
-    })
-    return params;
+	const paramArr = url.slice(url.indexOf('?') + 1).split('&');
+	const params = {};
+	paramArr.map(param => {
+		const [key, val] = param.split('=');
+		params[key] = decodeURIComponent(val);
+	})
+	return params;
 }
 
 
 function sendMovieClick(movieName,Cookie){
 	$.ajax({
-	    type: 'POST',
-	    url: 'http://127.0.0.1:8000/movieclick',
-	    data: JSON.stringify ({cookie: Cookie, movie_name: movieName}),
-	    success: function(data) {},
-	    contentType: "application/json",
-	    dataType: 'json'
+		type: 'POST',
+		url: 'http://127.0.0.1:8000/movieclick',
+		data: JSON.stringify ({cookie: Cookie, movie_name: movieName}),
+		success: function(data) {},
+		contentType: "application/json",
+		dataType: 'json'
 	});
 }
 
 
- 
+
 
 function setCookie(cname, cvalue, exdays)  {
-  const d = new Date();
-  d.setTime(d.getTime() + (exdays*24*60*60*1000));
-  let expires = "expires="+ d.toUTCString();
-  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+	const d = new Date();
+	d.setTime(d.getTime() + (exdays*24*60*60*1000));
+	let expires = "expires="+ d.toUTCString();
+	document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 
 function getCookie(cname) {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(';');
-  for(let i = 0; i <ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
+	let name = cname + "=";
+	let decodedCookie = decodeURIComponent(document.cookie);
+	let ca = decodedCookie.split(';');
+	for(let i = 0; i <ca.length; i++) {
+		let c = ca[i];
+		while (c.charAt(0) == ' ') {
+			c = c.substring(1);
+		}
+		if (c.indexOf(name) == 0) {
+			return c.substring(name.length, c.length);
+		}
+	}
+	return "";
 }
 
 function checkCookie(){
@@ -311,15 +438,52 @@ function checkCookie(){
 	}
 }
 
+function checkCookieNCF(){
+	if(getCookie("ncfid") == ""){
+		$("#btn-login").trigger( "click" );
+	}else{
+		$(".btn-close").trigger( "click" );
+		$("#btn-login").hide();
+		$('.self-user').show();
+		$('.self-user-span').text("Xin Chào, "+getCookie("ncfid"));
+		getMovieHomeNCF();
+	}
+}
+
+
+function checkFarivote(){
+	if(getCookie("ncfid") == ""){
+		window.location="ncf.html";
+	}else{
+		getMovieFarivote();
+	}
+}
+
+$("#btn-login-form").on("click",function() {
+	setCookie("ncfid", $("#userid").val(), 180);
+	getMovieHomeNCF();
+});
+
+
+$("#btn-logout").on("click",function() {
+	delete_cookie("ncfid");
+		$("#btn-login").show();
+		$('.self-user').hide();
+});
+
+
+function delete_cookie(name) {
+  document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
 function createCookieRadom(){
 	var chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    var cookieLength = 32;
-    var cookie = "";
+	var cookieLength = 32;
+	var cookie = "";
 	for (var i = 0; i <= cookieLength; i++) {
-	   var randomNumber = Math.floor(Math.random() * chars.length);
-	   cookie += chars.substring(randomNumber, randomNumber +1);
+		var randomNumber = Math.floor(Math.random() * chars.length);
+		cookie += chars.substring(randomNumber, randomNumber +1);
 	}
 	return cookie;
 }
 
- 

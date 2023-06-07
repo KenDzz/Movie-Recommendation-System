@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Movie Recommender Neural Collaborative Filtering </title>
+	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@latest/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="lib/Notiflix/dist/notiflix-3.2.5.min.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css"/>
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg bg-body-dark">
+		<div class="container-fluid">
+			<div class="collapse navbar-collapse" id="navbarSupportedContent">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+				</ul>
+				<div class="d-flex">
+					<div class="self-user">
+						<span class="self-user-span text-light"></span>
+						<a class="btn btn-outline-light" href="farivote.html">
+							Danh sách yêu thích
+						</a>
+						<button type="button" class="btn btn-outline-light" id="btn-logout" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+							Đăng xuất
+						</button>
+					</div>
+					<!-- Button trigger modal -->
+					<button type="button" class="btn btn-outline-light" id="btn-login" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+						Login User
+					</button>
+				</div>
+			</div>
+		</div>
+	</nav>
+	<!-- Login -->
+	<!-- Modal -->
+	<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h1 class="modal-title fs-5" id="staticBackdropLabel">Login</h1>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="mb-3">
+						<label for="exampleInputEmail1" class="form-label">UserID</label>
+						<input type="text" class="form-control" id="userid">
+					</div>
+					<div class="mb-3">
+						<label for="exampleInputPassword1" class="form-label">Password</label>
+						<input type="password" class="form-control" id="password" value="123456789">
+					</div>
+					<button type="submit" class="btn btn-outline-dark" id="btn-login-form">Login</button> 
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div class="row movie-recommender movie-recommender-cookie">
+		</div>
+		<div class="row movie">
+		</div>
+	</div>
+
+</body>
+<script src="lib/jquery/jquery-3.6.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@latest/dist/js/bootstrap.bundle.min.js"></script>
+<script src="lib/Notiflix/dist/notiflix-3.2.5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js"></script>
+<script src="js/app.js"></script>
+<script >
+	$(document).ready(function() {
+		getMovieHome(1);
+	});
+</script>
+</html>
